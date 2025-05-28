@@ -1,0 +1,114 @@
+##################################################
+# LHE reader for e+e-, including heavy scalars
+##################################################
+
+# Read some configuration files:
+read snippets/EECollider.in
+read snippets/YFS.in
+
+##################################################
+#   Create the Les Houches file handler and reader
+##################################################
+cd /Herwig/EventHandlers
+library LesHouches.so
+# create the event handler
+create ThePEG::LesHouchesEventHandler LesHouchesHandler
+
+# set the various step handlers
+set LesHouchesHandler:PartonExtractor /Herwig/Partons/EEExtractor
+set LesHouchesHandler:CascadeHandler /Herwig/Shower/ShowerHandler
+set LesHouchesHandler:DecayHandler /Herwig/Decays/DecayHandler
+set LesHouchesHandler:HadronizationHandler /Herwig/Hadronization/ClusterHadHandler
+
+set /Herwig/Shower/PartnerFinder:QEDPartner IIandFF
+set /Herwig/Shower/ShowerHandler:DoISR Yes
+set /Herwig/Shower/ShowerHandler:MaxPtIsMuF Yes
+set /Herwig/Shower/ShowerHandler:RestrictPhasespace Yes
+set /Herwig/Shower/PartnerFinder:PartnerMethod Random
+set /Herwig/Shower/PartnerFinder:ScaleChoice Partner
+
+# set the weight option 
+set LesHouchesHandler:WeightOption VarNegWeight
+
+# set event hander as one to be used
+set /Herwig/Generators/EventGenerator:EventHandler /Herwig/EventHandlers/LesHouchesHandler
+
+# disable handronization if desired by uncommenting the two lines below
+# set /Herwig/Generators/EventGenerator:EventHandler:HadronizationHandler  NULL
+# set /Herwig/Analysis/Basics:CheckQuark false
+
+# Set up an EMPTY CUTS object
+create ThePEG::Cuts /Herwig/Cuts/NoCuts
+
+####################################################################
+# File settings #
+####################################################################
+
+create ThePEG::LesHouchesFileReader LesHouchesReader
+set LesHouchesReader:FileName unweighted_events.lhe
+set LesHouchesReader:AllowedToReOpen No
+set LesHouchesReader:InitPDFs 0
+set LesHouchesReader:Cuts /Herwig/Cuts/NoCuts
+set LesHouchesReader:Decayer /Herwig/Decays/Mambo
+
+
+insert LesHouchesHandler:LesHouchesReaders 0 LesHouchesReader
+
+############################
+# Particle Setup and Decays
+############################
+
+# set the Higgs decays
+#decaymode h0->b,bbar; 0.5 1 /Herwig/Decays/Hff
+#decaymode h0->gamma,gamma; 0.5 1 /Herwig/Decays/HPP
+#do /Herwig/Particles/h0:SelectDecayModes h0->gamma,gamma;
+#do /Herwig/Particles/h0:PrintDecayModes
+
+set /Herwig/Particles/W+:Synchronized Not_synchronized
+set /Herwig/Particles/W-:Synchronized Not_synchronized
+
+# make sure Herwig knows about the new scalars
+cd /Herwig/Particles
+create ThePEG::ParticleData eta0
+setup eta0 99925 eta0 300.0 0.0 0.0 0 0 0 1 0
+
+cd /Herwig/Particles
+create ThePEG::ParticleData iota0
+setup iota0 99926 iota0 925.0 0.0 0.0 0 0 0 1 0
+
+# create the iota0 > h0 eta0 decay
+cd /Herwig/Decays
+create Herwig::ScalarScalarScalarDecayer IOTAHETA
+set IOTAHETA:Iteration 1
+set IOTAHETA:Ntry 500
+set IOTAHETA:Points 10000
+set IOTAHETA:GenerateIntermediates 0
+do IOTAHETA:SetUpDecayMode 99926 25 99925 1660.0 1.1
+decaymode iota0->eta0,h0; 1.0 1 /Herwig/Decays/IOTAHETA
+insert /Herwig/Shower/ShowerHandler:DecayInShower 1  99926
+
+# select the iota0 > h0 eta0 decay
+do /Herwig/Particles/iota0:SelectDecayModes iota0->eta0,h0;
+do /Herwig/Particles/iota0:PrintDecayModes
+
+
+# create the eta0 > W+W- decay
+cd /Herwig/Decays
+create Herwig::ScalarVectorVectorDecayer ETAVV
+set ETAVV:Iteration 1
+set ETAVV:Ntry 2000
+set ETAVV:Points 10000
+set ETAVV:GenerateIntermediates 0
+do ETAVV:SetUpDecayMode 99925 24 -24 1.0 1.0
+decaymode eta0->W-,W+; 1.0 1 /Herwig/Decays/ETAVV
+insert /Herwig/Shower/ShowerHandler:DecayInShower 1  99925
+
+# select the eta0 > W+ W- decay
+do /Herwig/Particles/eta0:SelectDecayModes eta0->W+,W-;
+do /Herwig/Particles/eta0:PrintDecayModes
+
+##################################################
+# Save run for later usage with 'Herwig run'
+##################################################
+cd /Herwig/Generators
+saverun LHE-iota0eta0h-WW EventGenerator
