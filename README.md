@@ -7,3 +7,8 @@ The ```unweighted_events.lhe.gz``` file was generated via MadGraph 5 using the T
 
 $\iota_0 \rightarrow \eta_0 h$
 
+The ```eta0``` particle was then set up to decay to W+W-.
+
+See input file for details on the setup of the decay modes. 
+
+Note that this is somewhat of a hack, and the built-in UFO interface is recommended! Works with Herwig 7.3.0.
