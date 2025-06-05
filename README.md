@@ -12,3 +12,13 @@ The ```eta0``` particle was then set up to decay to W+W-.
 See input file for details on the setup of the decay modes. 
 
 Note that this is somewhat of a hack, and the built-in UFO interface is recommended! Works with Herwig 7.3.0.
+
+## Herwig Model:
+
+To run the MENewScalars model, place the ```NewScalars``` folder in the ```Herwig-7.3.0/Contrib``` directory. In that directory, type ```make``` to create the Makefile for the ```NewScalars``` model. 
+
+Then, in the ```NewScalars``` directory, type ```make```.
+
+An example input file exists: ```LHC-NewScalars.in```. 
+
+IMPORTANT: Note that for now, the MHatMin and MHatMax cuts have to be set to be slightly below and slightly above the chosen mass for the ```iota0``` particle, otherwise this wil l note work!
