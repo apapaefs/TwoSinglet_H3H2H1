@@ -1,0 +1,86 @@
+# -*- ThePEG-repository -*-
+
+##################################################
+# Example generator based on LHC parameters
+# usage: Herwig read LHC.in
+##################################################
+
+read snippets/PPCollider.in
+
+##################################################
+# Technical parameters for this run
+##################################################
+cd /Herwig/Generators
+set EventGenerator:MaxErrors 10000
+
+##################################################
+# LHC physics parameters (override defaults here) 
+##################################################
+set EventGenerator:EventHandler:LuminosityFunction:Energy 13000.0
+
+
+cd /Herwig/Cuts
+set Cuts:MHatMin 724.99999*GeV
+set Cuts:MHatMax 725.00001*GeV
+
+############################
+# Particle Setup and Decays
+############################
+
+# make sure Herwig knows about the new scalars
+cd /Herwig/Particles
+create ThePEG::ParticleData eta0
+setup eta0 99925 eta0 300.0 0.0 0.0 0 0 0 1 0
+
+cd /Herwig/Particles
+create ThePEG::ParticleData iota0
+setup iota0 99926 iota0 725.0 1E-10 1E-9 0 0 0 1 0
+set iota0:HardProcessWidth 0*GeV
+
+
+# create the iota0 > h0 eta0 decay
+cd /Herwig/Decays
+create Herwig::ScalarScalarScalarDecayer IOTAHETA
+set IOTAHETA:Iteration 1
+set IOTAHETA:Ntry 500
+set IOTAHETA:Points 10000
+set IOTAHETA:GenerateIntermediates 0
+do IOTAHETA:SetUpDecayMode 99926 25 99925 1660.0 1.1
+decaymode iota0->eta0,h0; 1.0 1 /Herwig/Decays/IOTAHETA
+insert /Herwig/Shower/ShowerHandler:DecayInShower 1  99926
+
+# select the iota0 > h0 eta0 decay
+do /Herwig/Particles/iota0:SelectDecayModes iota0->eta0,h0;
+do /Herwig/Particles/iota0:PrintDecayModes
+
+
+# create the eta0 > W+W- decay
+cd /Herwig/Decays
+create Herwig::ScalarVectorVectorDecayer ETAVV
+set ETAVV:Iteration 1
+set ETAVV:Ntry 2000
+set ETAVV:Points 10000
+set ETAVV:GenerateIntermediates 0
+do ETAVV:SetUpDecayMode 99925 24 -24 1.0 1.0
+decaymode eta0->W-,W+; 1.0 1 /Herwig/Decays/ETAVV
+insert /Herwig/Shower/ShowerHandler:DecayInShower 1  99925
+
+# select the eta0 > W+ W- decay
+do /Herwig/Particles/eta0:SelectDecayModes eta0->W+,W-;
+do /Herwig/Particles/eta0:PrintDecayModes
+
+                                       
+##################################################
+# Matrix Elements for hadron-hadron collisions 
+##################################################
+cd /Herwig/MatrixElements/
+create Herwig::MENewScalars MENewScalars MENewScalars.so
+
+insert SubProcess:MatrixElements[0] MENewScalars
+set MENewScalars:GGiota 10.0
+
+##################################################
+# Save run for later usage with 'Herwig run'
+##################################################
+cd /Herwig/Generators
+saverun LHC-NewScalars EventGenerator
