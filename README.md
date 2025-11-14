@@ -21,4 +21,4 @@ Then, in the ```NewScalars``` directory, type ```make```.
 
 An example input file exists: ```LHC-NewScalars.in```. 
 
-IMPORTANT: Note that for now, the MHatMin and MHatMax cuts have to be set to be slightly below and slightly above the chosen mass for the ```iota0``` particle, otherwise this wil l note work!
+IMPORTANT: Note that for now, the MHatMin and MHatMax cuts have to be set to be slightly below and slightly above the chosen mass for the ```iota0``` particle!
